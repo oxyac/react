@@ -1,6 +1,7 @@
 import UserNameInput from "./UserNameInput";
 import React from "react";
-import PostList from "./PostList";
+import {Button} from "primereact/button";
+import {GridContainer, GridElementLeft, GridElementRight, LoginAbsolute, LoginP} from "../UI/StyledComponents";
 //
 // function LogoutButton(props) {
 //     return (<button onClick={props.onClick}>
@@ -16,7 +17,7 @@ class Account extends React.Component {
         super(props);
         this.state = {
             timeLoggedIn: 0,
-            isLoggedIn: false,
+            isLoggedIn: true,
             username: ''
         };
     }
@@ -51,7 +52,7 @@ class Account extends React.Component {
     }
 
     componentDidMount() {
-        // this.props.setAccess(2);
+        this.props.setAccess(2);
     }
 
     componentWillUnmount() {
@@ -62,15 +63,22 @@ class Account extends React.Component {
     render() {
         return (
             <div>{this.state.isLoggedIn &&
-                <div>
-                    <p> Logged in as {this.state.username}</p>
-                    <p> Time Logged In : {this.state.timeLoggedIn}</p>
-                    <button onClick={this.handleLogoutClick.bind(this)}>Log out</button>
-                </div>}
-                {!this.state.isLoggedIn && <div>
+                <GridContainer>
+
+                    <GridElementLeft>
+                        <LoginP> Logged in as <b>{this.state.username}</b></LoginP>
+                        <LoginP> Time Logged In : {this.state.timeLoggedIn}</LoginP>
+
+                    </GridElementLeft>
+                    <GridElementRight>
+                        <Button onClick={this.handleLogoutClick.bind(this)} style={{margin: '12px'}}>Log out</Button>
+
+                    </GridElementRight>
+                </GridContainer>}
+                {!this.state.isLoggedIn && <LoginAbsolute>
                     <p>Please Log In</p>
-                    <UserNameInput onEnterUserName={this.handleLoginClick.bind(this)}></UserNameInput>
-                </div>
+                        <UserNameInput onEnterUserName={this.handleLoginClick.bind(this)}></UserNameInput>
+                </LoginAbsolute>
                 }
             </div>
         )

@@ -7,7 +7,7 @@ const NameList = props => {
 
     }
 
-    return <p>{formatName()}</p>;
+    // return <p>{formatName()}</p>;
 }
 
 

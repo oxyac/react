@@ -1,10 +1,16 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import WarningNoPosts from "./WarningNoPosts";
 import WritePost from "./WritePost";
-import faker from 'faker';
+// import faker from 'faker';
 import {Button} from 'primereact/button';
 import {config, postData} from "../../util/util";
 import {Toast} from "primereact/toast";
+import styled, {createGlobalStyle, keyframes, css} from "styled-components";
+import {SearchBar} from "./SearchBar";
+import {
+    Container, GridContainer, GridElementLeft, GridElementRight, GridElementRightButtons, StyledButton
+} from "../UI/StyledComponents";
+
 
 // const data = new Array(10).fill()
 //     .map((value, index) => ({
@@ -12,6 +18,7 @@ import {Toast} from "primereact/toast";
 //     }))
 
 const PostList = (props) => {
+
 
     const [postList, setPostList] = useState([]);
     const [editingPost, setEditingPost] = useState({})
@@ -21,6 +28,7 @@ const PostList = (props) => {
     const toast = useRef(null);
 
     React.useEffect(() => {
+        console.log(props.access);
         const url = config.apiUrl + '?method=getAll';
         fetch(url)
             .then((response) => response.json())
@@ -31,6 +39,10 @@ const PostList = (props) => {
             .catch((error) => console.log(error));
     }, []);
 
+    if(props.access < 1){
+
+        return null;
+    }
     function toggleEditPost(post) {
         setEditingPost(post);
         setAction('Edit');
@@ -53,7 +65,7 @@ const PostList = (props) => {
             postData(config.apiUrl, {post, 'method': 'insertOne'})
                 .then((data) => {
                     toast.current.show({severity: 'success', summary: 'Success', detail: 'Post Saved'});
-                    setPostList((prevState) => [...prevState, post].sort((a, b) => a.id - b.id));
+                    setPostList((prevState) => [...prevState, data.data].sort((a, b) => a.id - b.id));
                     console.log(data);
                 })
                 .catch((error) => {
@@ -77,29 +89,49 @@ const PostList = (props) => {
     }
 
     function deletePost(postDelete) {
-        setPostList((prev) => {
-            return prev.filter(post => post !== postDelete);
-        });
+        fetch(config.apiUrl + `?method=deletePost&postId=` + postDelete.id)
+            .then((response) => response.json())
+            .then((json) => {
+                setPostList((prev) => {
+                    return prev.filter(post => post !== postDelete);
+                });
+                setIsLoading(false);
+            })
+            .catch((error) => console.log(error));
+    }
+
+    const handleSearchAction = (value) => {
+        fetch(config.apiUrl + '?method=getAll&searchTerm=' + value)
+            .then((response) => response.json())
+            .then((json) => {
+                setPostList(json.data.sort((a, b) => a.id - b.id));
+                setIsLoading(false);
+            })
+            .catch((error) => console.log(error));
     }
 
     return (<div>
-        <Toast ref={toast} position="top-right"/>
+        <div>
+            <Toast ref={toast} position="top-right" style={{position: "fixed"}}/>
+        </div>
         <div>
 
-            {isLoading === true ? <h2> One Second ... </h2> : <div className="post-content">
+            {isLoading === true ? <i className="pi pi-spin pi-spinner" style={{'fontSize': '2em'}}></i> : <Container>
                 <WarningNoPosts posts={postList}></WarningNoPosts>
-                <div>
-                    {(action === '' || postList.length === 0) && <div style={{}}>
-                        <Button onClick={toggleAddPost}>Add Post</Button>
-                    </div>}
-                    {(action !== '') && <WritePost savePost={handleSaveAction} access={props.access} action={action}
-                                                   post={editingPost}
-                                                   setAction={setAction}
-                                                   cancelSubmission={cancelSubmissionHandler}></WritePost>}
-                </div>
-                {postList?.length > 0 && <ul>
-                    {postList.map((post) => (<div key={post.id} className="post-list">
-                        <li className="post-list-el">
+                <GridContainer>
+                    <GridElementLeft>
+                        {(action === '' || postList.length === 0) && <div style={{}}>
+                            <Button onClick={toggleAddPost} icon="pi pi-plus"></Button>
+                        </div>}
+                    </GridElementLeft>
+
+                    <GridElementRight>
+                        <SearchBar handleSearch={handleSearchAction}></SearchBar>
+                    </GridElementRight>
+                </GridContainer>
+                {postList?.length > 0 && <div>
+                    {postList.map((post) => (<GridContainer key={post.id}>
+                        <GridElementLeft className="hovered">
                             <h3
                                 style={{wordBreak: "break-word"}}
                             >{post.id} | {post.title}</h3>
@@ -107,13 +139,26 @@ const PostList = (props) => {
                                 style={{wordBreak: "break-word"}}>
                                 {post.body}
                             </p>
-                        </li>
 
-                        {action === '' &&
-                            <button style={{marginRight: 0}} onClick={() => toggleEditPost(post)}>Edit</button>}
-                        {action === '' && <button style={{marginLeft: 0}} onClick={() => deletePost(post)}>X</button>}
-                    </div>))}
-                </ul>}</div>}
+                        </GridElementLeft>
+
+                        <GridElementRightButtons>
+                            <Button icon="pi pi-pencil"
+                                    onClick={() => toggleEditPost(post)}></Button>
+                            <StyledButton icon="pi pi-times"
+                                          onClick={() => deletePost(post)}></StyledButton>
+                        </GridElementRightButtons>
+                    </GridContainer>))}
+                </div>}</Container>}
+
+            <div>
+
+                {(action !== '') && <WritePost savePost={handleSaveAction} access={props.access} action={action}
+                                               post={editingPost}
+                                               setAction={setAction}
+                                               cancelSubmission={cancelSubmissionHandler}></WritePost>}
+
+            </div>
 
 
         </div>
