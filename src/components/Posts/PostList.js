@@ -3,10 +3,13 @@ import WarningNoPosts from "./WarningNoPosts";
 import WritePost from "./WritePost";
 // import faker from 'faker';
 import {Button} from 'primereact/button';
-import {config, postData} from "../../util/util";
+import {config, deleteData, getData, postData} from "../../util/util";
 import {Toast} from "primereact/toast";
 import styled, {createGlobalStyle, keyframes, css} from "styled-components";
 import {SearchBar} from "./SearchBar";
+import ReactPaginate from 'react-paginate';
+import paginate from '../UI/pagination/pagination.module.css';
+
 import {
     Container, GridContainer, GridElementLeft, GridElementRight, GridElementRightButtons, StyledButton
 } from "../UI/StyledComponents";
@@ -25,24 +28,50 @@ const PostList = (props) => {
     const [action, setAction] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
-    const toast = useRef(null);
+
+    const [paramOptions, setParamOptions] = useState({
+        page: 1, filter: '', perPage: 15
+    });
+
+    const [pageOptions, setPageOptions] = useState({
+        total: 0, pageCount: 1, currentPage: 1,
+    });
 
     React.useEffect(() => {
-        console.log(props.access);
-        const url = config.apiUrl + '?method=getAll';
-        fetch(url)
-            .then((response) => response.json())
+        getPostList();
+    }, []);
+
+    React.useEffect(() => {
+        //call function when something change in state
+        getPostList();
+    }, [paramOptions]) //dependency added
+
+
+    const toast = useRef(null);
+
+    const getPostList = () => {
+        getData('posts', paramOptions)
             .then((json) => {
-                setPostList(json.data.sort((a, b) => a.id - b.id));
+                fillData(json);
                 setIsLoading(false);
             })
             .catch((error) => console.log(error));
-    }, []);
+    }
 
-    if(props.access < 1){
+    const fillData = (json) => {
+        setPostList(json.data.items);
+        setPageOptions({
+            total: json.data.total,
+            pageCount: Math.ceil(json.data.total / paramOptions.perPage),
+            currentPage: json.data.page,
+        });
+    }
+
+    if (props.access < 1) {
 
         return null;
     }
+
     function toggleEditPost(post) {
         setEditingPost(post);
         setAction('Edit');
@@ -58,57 +87,57 @@ const PostList = (props) => {
     }
 
     function handleSaveAction(post) {
-        // await new Promise(r => setTimeout(r, 2000));
+        postData('posts', post)
+            .then((data) => {
+                toast.current.show({severity: 'success', summary: 'Success', detail: `${action} action successful`});
 
-
-        if (action === 'Add') {
-            postData(config.apiUrl, {post, 'method': 'insertOne'})
-                .then((data) => {
-                    toast.current.show({severity: 'success', summary: 'Success', detail: 'Post Saved'});
-                    setPostList((prevState) => [...prevState, data.data].sort((a, b) => a.id - b.id));
-                    console.log(data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
-        if (action === 'Edit') {
-            postData(config.apiUrl, {post, 'method': 'editPost'})
-                .then((data) => {
-                    toast.current.show({severity: 'success', summary: 'Success', detail: 'Post updated'});
+                if (action === 'Add') {
+                    setPostList((prevState) => [data.data.items, ...prevState]);
+                } else if (action === 'Edit') {
                     let idx = postList.findIndex(p => p.id === post.id);
                     const newPostList = [...postList];
-                    newPostList[idx] = data.data;
+                    newPostList[idx] = data.data.items;
                     setPostList(newPostList);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                })
-
-        }
+                } else {
+                    console.log('error');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     }
 
     function deletePost(postDelete) {
-        fetch(config.apiUrl + `?method=deletePost&postId=` + postDelete.id)
-            .then((response) => response.json())
+        deleteData('posts', postDelete.id)
             .then((json) => {
+                if(json.data.items !== true){
+                    toast.current.show({severity: 'error', summary: 'Error', detail: `Entity not deleted`});
+                    return;
+                }
+                toast.current.show({severity: 'success', summary: 'Error', detail: `success`});
                 setPostList((prev) => {
                     return prev.filter(post => post !== postDelete);
                 });
                 setIsLoading(false);
             })
-            .catch((error) => console.log(error));
+            .catch((error) => console.log(error))
     }
 
     const handleSearchAction = (value) => {
-        fetch(config.apiUrl + '?method=getAll&searchTerm=' + value)
-            .then((response) => response.json())
-            .then((json) => {
-                setPostList(json.data.sort((a, b) => a.id - b.id));
-                setIsLoading(false);
-            })
-            .catch((error) => console.log(error));
+
+        setParamOptions({
+            ...paramOptions, filter: value
+        })
+
     }
+
+    const handlePageClick = (e) => {
+
+        setParamOptions({
+            ...paramOptions, page: e.selected + 1
+        })
+
+    };
 
     return (<div>
         <div>
@@ -149,7 +178,21 @@ const PostList = (props) => {
                                           onClick={() => deletePost(post)}></StyledButton>
                         </GridElementRightButtons>
                     </GridContainer>))}
-                </div>}</Container>}
+                </div>}
+
+                <ReactPaginate
+                    previousLabel={"prev"}
+                    nextLabel={"next"}
+                    breakLabel={"..."}
+                    breakClassName={paginate.breakMe}
+                    pageCount={pageOptions.pageCount}
+                    marginPagesDisplayed={2}
+                    pageRangeDisplayed={5}
+                    onPageChange={handlePageClick}
+                    containerClassName={paginate.pagination}
+                    subContainerClassName={"pages pagination"}
+                    activeClassName={paginate.active}/>
+            </Container>}
 
             <div>
 
