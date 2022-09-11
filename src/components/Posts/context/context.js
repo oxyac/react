@@ -1,3 +1,7 @@
 import {createContext} from "react";
 
-export const accessLevelContext = createContext(0);
+export const userContext = createContext({
+    username: '',
+    timeLoggedIn: 0,
+    accessLevel: 0
+});

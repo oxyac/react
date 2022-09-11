@@ -55,7 +55,7 @@ h5{
 }
 
 /* The Modal (background) */
-.modal {
+.modal-overlay {
   display: block; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
@@ -70,11 +70,16 @@ h5{
 
 /* Modal Content/Box */
 .modal-content {
+  position:absolute;
   background-color: #fefefe;
   margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px 20px 80px;
+  padding: 20px 20px 30px;
   border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
+  width: 70%; /* Could be more or less, depending on screen size */
+  z-index: 1;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border-radius: 25px;
 }
 
 .modal-content h5{

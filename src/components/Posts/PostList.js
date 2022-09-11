@@ -110,7 +110,7 @@ const PostList = (props) => {
     function deletePost(postDelete) {
         deleteData('posts', postDelete.id)
             .then((json) => {
-                if(json.data.items !== true){
+                if (json.data.items !== true) {
                     toast.current.show({severity: 'error', summary: 'Error', detail: `Entity not deleted`});
                     return;
                 }
@@ -139,73 +139,64 @@ const PostList = (props) => {
 
     };
 
-    return (<div>
-        <div>
-            <Toast ref={toast} position="top-right" style={{position: "fixed"}}/>
-        </div>
-        <div>
+    return (<>
+        <Toast ref={toast} position="top-right" style={{position: "fixed"}}/>
 
-            {isLoading === true ? <i className="pi pi-spin pi-spinner" style={{'fontSize': '2em'}}></i> : <Container>
-                <WarningNoPosts posts={postList}></WarningNoPosts>
-                <GridContainer>
-                    <GridElementLeft>
-                        {(action === '' || postList.length === 0) && <div style={{}}>
-                            <Button onClick={toggleAddPost} icon="pi pi-plus"></Button>
-                        </div>}
+        {isLoading === true ? <i className="pi pi-spin pi-spinner" style={{'fontSize': '2em'}}></i> : <Container>
+            <WarningNoPosts posts={postList}></WarningNoPosts>
+            <GridContainer>
+                <GridElementLeft>
+                    {(action === '' || postList.length === 0) && <div style={{}}>
+                        <Button onClick={toggleAddPost} icon="pi pi-plus"></Button>
+                    </div>}
+                </GridElementLeft>
+
+                <GridElementRight>
+                    <SearchBar handleSearch={handleSearchAction}></SearchBar>
+                </GridElementRight>
+            </GridContainer>
+            {postList?.length > 0 && <div>
+                {postList.map((post) => (<GridContainer key={post.id}>
+                    <GridElementLeft className="hovered">
+                        <h3
+                            style={{wordBreak: "break-word"}}
+                        >{post.id} | {post.title}</h3>
+                        <p
+                            style={{wordBreak: "break-word"}}>
+                            {post.body}
+                        </p>
+
                     </GridElementLeft>
 
-                    <GridElementRight>
-                        <SearchBar handleSearch={handleSearchAction}></SearchBar>
-                    </GridElementRight>
-                </GridContainer>
-                {postList?.length > 0 && <div>
-                    {postList.map((post) => (<GridContainer key={post.id}>
-                        <GridElementLeft className="hovered">
-                            <h3
-                                style={{wordBreak: "break-word"}}
-                            >{post.id} | {post.title}</h3>
-                            <p
-                                style={{wordBreak: "break-word"}}>
-                                {post.body}
-                            </p>
+                    <GridElementRightButtons>
+                        <Button icon="pi pi-pencil"
+                                onClick={() => toggleEditPost(post)}></Button>
+                        <StyledButton icon="pi pi-times"
+                                      onClick={() => deletePost(post)}></StyledButton>
+                    </GridElementRightButtons>
+                </GridContainer>))}
+            </div>}
 
-                        </GridElementLeft>
+            <ReactPaginate
+                previousLabel={"prev"}
+                nextLabel={"next"}
+                breakLabel={"..."}
+                breakClassName={paginate.breakMe}
+                pageCount={pageOptions.pageCount}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageClick}
+                containerClassName={paginate.pagination}
+                subContainerClassName={"pages pagination"}
+                activeClassName={paginate.active}/>
+        </Container>}
 
-                        <GridElementRightButtons>
-                            <Button icon="pi pi-pencil"
-                                    onClick={() => toggleEditPost(post)}></Button>
-                            <StyledButton icon="pi pi-times"
-                                          onClick={() => deletePost(post)}></StyledButton>
-                        </GridElementRightButtons>
-                    </GridContainer>))}
-                </div>}
+        {(action !== '') && <WritePost savePost={handleSaveAction} access={props.access} action={action}
+                                       post={editingPost}
+                                       setAction={setAction}
+                                       cancelSubmission={cancelSubmissionHandler}></WritePost>}
 
-                <ReactPaginate
-                    previousLabel={"prev"}
-                    nextLabel={"next"}
-                    breakLabel={"..."}
-                    breakClassName={paginate.breakMe}
-                    pageCount={pageOptions.pageCount}
-                    marginPagesDisplayed={2}
-                    pageRangeDisplayed={5}
-                    onPageChange={handlePageClick}
-                    containerClassName={paginate.pagination}
-                    subContainerClassName={"pages pagination"}
-                    activeClassName={paginate.active}/>
-            </Container>}
-
-            <div>
-
-                {(action !== '') && <WritePost savePost={handleSaveAction} access={props.access} action={action}
-                                               post={editingPost}
-                                               setAction={setAction}
-                                               cancelSubmission={cancelSubmissionHandler}></WritePost>}
-
-            </div>
-
-
-        </div>
-    </div>);
+    </>);
 
 };
 

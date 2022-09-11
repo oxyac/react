@@ -1,23 +1,37 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './App.css';
 import {Routes, Route, Link} from "react-router-dom";
 import {BlogApp} from "./components/Posts/BlogApp";
 import {A, NavBar, NavBarLink, NavBarLinkRight, StyledLink} from "./components/UI/StyledComponents";
 import Account from "./components/Posts/Account";
 import {Example} from "./components/Posts/effects";
-import {accessLevelContext} from "./components/Posts/context/context";
+import {userContext} from "./components/Posts/context/context";
 
 
 const App = () => {
 
-    const [accessLevel, setAccessLevel] = useState(0);
+    const [userDetails, setUserDetails] = useState({
+        username: '',
+        accessLevel: 0,
+        timeLoggedIn: 0
+    });
 
-    const handleAccess = (level) => {
-        setAccessLevel(level);
+    useEffect(() => {
+        const userDetailsCached = localStorage.getItem('userDetails');
+
+        console.log(userDetailsCached);
+        if(userDetailsCached){
+            setUserDetails(JSON.parse(userDetailsCached));
+
+        }
+
+    }, [])
+
+    const handleUserDetails = (userDetails, callback) => {
+        console.log(callback)
+        localStorage.setItem('userDetails', JSON.stringify(userDetails));
+        setUserDetails(userDetails);
     }
-
-
-
 
     return (<div>
 
@@ -30,17 +44,19 @@ const App = () => {
             </NavBarLink>
 
             <NavBarLinkRight>
-                <Account setAccess={handleAccess}></Account>
+                <Account
+                    setUserDetails={handleUserDetails}
+                    userDetails={userDetails}></Account>
             </NavBarLinkRight>
         </NavBar>
         <br/>
 
-        <accessLevelContext.Provider value={accessLevel}>
+        <userContext.Provider value={userDetails}>
             <Routes>
                 <Route path="/" element={<BlogApp/>}/>
                 <Route path="use-effect" element={<Example/>}/>
             </Routes>
-        </accessLevelContext.Provider>
+        </userContext.Provider>
         </div>
     );
 };

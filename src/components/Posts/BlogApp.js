@@ -2,19 +2,19 @@ import React from "react";
 import PostList from "./PostList";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import 'primeicons/primeicons.css';
-import {accessLevelContext} from "./context/context";
+import {userContext} from "./context/context";
 
 
 export const BlogApp = () => {
 
-    return (<div>
+    return (<>
 
-        <accessLevelContext.Consumer>
-            {value => <PostList access={value}>
+        <userContext.Consumer>
+            {value => <PostList access={value.accessLevel}>
             </PostList>}
-        </accessLevelContext.Consumer>
+        </userContext.Consumer>
 
 
-    </div>)
+    </>)
 }
 
