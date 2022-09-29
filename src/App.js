@@ -27,8 +27,7 @@ const App = () => {
 
     }, [])
 
-    const handleUserDetails = (userDetails, callback) => {
-        console.log(callback)
+    const handleUserDetails = (userDetails) => {
         localStorage.setItem('userDetails', JSON.stringify(userDetails));
         setUserDetails(userDetails);
     }

@@ -1,23 +1,68 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {InputText} from "primereact/inputtext";
 import {Button} from "primereact/button";
 
 
 const UserNameInput = props => {
-    const [enteredValue, setEnteredValue] = useState('');
+    const [username, setUsername] = useState('');
+    const [firstCheck, setFirstCheck] = useState(true);
     const [isValid, setIsValid] = useState(true);
-    const goalInputChangeHandler = event => {
-        setEnteredValue(event.target.value);
+    const [errorMessage, setErrorMessage] = useState('');
+    const inputChangeHandler = event => {
+        setFirstCheck(false);
+        setUsername(event.target.value);
     };
+    useEffect(() => {
+
+        const timerID = setTimeout(() => {
+
+            checkUsername()
+        }, 500)
+
+        return () => {
+            clearTimeout(timerID);
+        }
+
+    }, [username])
 
     const formSubmitHandler = event => {
         event.preventDefault();
-        if (enteredValue.trim().length === 0) {
-            setIsValid(false);
-            return;
+        if(checkUsername()){
+            props.onEnterUserName(username, 2);
         }
-        props.onEnterUserName(enteredValue, 2);
     };
+
+    const checkUsername = () => {
+
+        if(firstCheck){
+            return false;
+        }
+
+        const regex = /^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/
+
+        if (username.trim().length === 0) {
+            setErrorMessage('Enter username')
+            setIsValid(false);
+            return false;
+        }
+
+        if (username.length < 6) {
+            setErrorMessage('Username too short!')
+            setIsValid(false);
+            return false;
+
+        }
+
+        if (regex.test(username) === false) {
+            setErrorMessage('Only a-z A-Z and - _ allowed')
+            setIsValid(false);
+            return false;
+        }
+
+        setErrorMessage('');
+        setIsValid(true);
+        return true;
+    }
 
     return (<form onSubmit={formSubmitHandler}>
         <div className="form-control">
@@ -27,10 +72,12 @@ const UserNameInput = props => {
                 aria-describedby="username2-help"
                 className={!isValid ? "p-invalid" : "block"}
                 type="text"
-                onChange={goalInputChangeHandler}
+                onChange={inputChangeHandler}
                 style={{margin: "0 0 0 12px"}}
-                />
-            {!isValid ? <small id="username2-help" className="p-error block">Username is not available.</small> :
+            />
+            <br/>
+
+        {!isValid ? <small id="username2-help" className="p-error block">{errorMessage}</small> :
                 <small></small>}
         </div>
         <div style={{position: "relative", float: "right", margin: "10px 0 0 0 "}}>

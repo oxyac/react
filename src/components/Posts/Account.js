@@ -44,9 +44,9 @@ class Account extends React.Component {
 
     handleLogoutClick() {
 
-        clearInterval(this.props.userDetails.timerID);
+        clearInterval(this.state.timerID);
         this.props.setUserDetails({
-            ...this.props.userDetails, username: '', accessLevel: 0, timeLoggedIn: 0, timerID: null
+            ...this.props.userDetails, username: '', accessLevel: 0, timeLoggedIn: 0
         });
     }
 
@@ -57,7 +57,7 @@ class Account extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.state.timerID === null) {
+        if (this.state.timerID === null && this.props.userDetails.accessLevel > 0) {
             this.initiateLogin();
         }
     }
@@ -76,7 +76,8 @@ class Account extends React.Component {
 
                 <GridElementLeft>
                     <LoginP> Logged in as <b>{this.props.userDetails.username}</b></LoginP>
-                    <LoginP> Time Logged In : {this.props.userDetails.timeLoggedIn}</LoginP>
+                    <LoginP> Time Logged In
+                        : {new Date((this.props.userDetails.timeLoggedIn) * 1000).toISOString().slice(14, 19)}</LoginP>
 
                 </GridElementLeft>
                 <GridElementRight>
